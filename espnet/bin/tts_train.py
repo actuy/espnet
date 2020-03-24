@@ -18,6 +18,11 @@ from espnet.nets.tts_interface import TTSInterface
 from espnet.utils.cli_utils import strtobool
 from espnet.utils.training.batchfy import BATCH_COUNT_CHOICES
 
+if "/home/espnet" in sys.path:
+    sys.path.remove("/home/espnet")
+ESPNET_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+sys.path.insert(0, ESPNET_ROOT)
+
 
 # NOTE: you need this func to generate our sphinx doc
 def get_parser():
