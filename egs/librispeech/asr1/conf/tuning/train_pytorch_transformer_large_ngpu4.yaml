@@ -1,9 +1,8 @@
-# This configuration requires 4 gpus with 12GB memory
 accum-grad: 4
 adim: 512
 aheads: 8
 backend: pytorch
-batch-bins: 150000
+batch-bins: 15000000
 dlayers: 6
 dropout-rate: 0.1
 dunits: 2048
