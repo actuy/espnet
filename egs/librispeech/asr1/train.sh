@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# cd /var/storage/shared/xxx/v-chzh/
+# git clone https://github.com/actuy/espnet.git
+# cd espnet/tools
+# ln -sf /home/espnet/tools/* ./
+# cd ../egs/librispeech/asr1/
 . ./path.sh || exit 1;
 . ./cmd.sh || exit 1;
 
@@ -15,7 +20,8 @@ resume=        # Resume the training from snapshot
 # feature configuration
 do_delta=false
 
-preprocess_config=conf/specaug.yaml
+preprocess_config=
+#preprocess_config=conf/specaug.yaml
 train_config=conf/train.yaml # current default recipe requires 4 gpus.
                              # if you do not have 4 gpus, please reconfigure the `batch-bins` and `accum-grad` parameters in config.
 lm_config=conf/lm.yaml
