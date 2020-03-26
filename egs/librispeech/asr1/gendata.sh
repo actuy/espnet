@@ -48,8 +48,8 @@ use_lm_valbest_average=false # if true, the validation `lm_n_average`-best langu
 # someone else has already put it.  You'll want to change this
 # if you're not on the CLSP grid.
 datadir=/blob/v-chzh/dataDir/data/libri
-#dataprefix=${datadir}/LibriSpeech/espnet
-dataprefix=${datadir}/espnet
+dataprefix=${datadir}/LibriSpeech/espnet
+#dataprefix=${datadir}/espnet
 dumpdir=${dataprefix}/${dumpdir}
 #datadir=/export/a15/vpanayotov/data
 
@@ -99,38 +99,38 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
         utils/fix_data_dir.sh data/${x}
     done
 
-#    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_set}_org ${dataprefix}/data/train_clean_100 ${dataprefix}/data/train_clean_360 ${dataprefix}/data/train_other_500
-#    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/dev_clean ${dataprefix}/data/dev_other
-#
-#    # remove utt having more than 3000 frames
-#    # remove utt having more than 400 characters
-#    remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_set}_org ${dataprefix}/data/${train_set}
-#    remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/${train_dev}
-#
-#    # compute global CMVN
-#    compute-cmvn-stats scp:${dataprefix}/data/${train_set}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark
-#
-#    # dump features for training
-#    if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_tr_dir}/storage ]; then
-#    utils/create_split_dir.pl \
-#        /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_set}/delta${do_delta}/storage \
-#        ${feat_tr_dir}/storage
-#    fi
-#    if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_dt_dir}/storage ]; then
-#    utils/create_split_dir.pl \
-#        /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_dev}/delta${do_delta}/storage \
-#        ${feat_dt_dir}/storage
-#    fi
-#    dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
-#        ${dataprefix}/data/${train_set}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/train ${feat_tr_dir}
-#    dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
-#        ${dataprefix}/data/${train_dev}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/dev ${feat_dt_dir}
-#    for rtask in ${recog_set}; do
-#        feat_recog_dir=${dumpdir}/${rtask}/delta${do_delta}; mkdir -p ${feat_recog_dir}
-#        dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
-#            ${dataprefix}/data/${rtask}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/recog/${rtask} \
-#            ${feat_recog_dir}
-#    done
+    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_set}_org ${dataprefix}/data/train_clean_100 ${dataprefix}/data/train_clean_360 ${dataprefix}/data/train_other_500
+    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/dev_clean ${dataprefix}/data/dev_other
+
+    # remove utt having more than 3000 frames
+    # remove utt having more than 400 characters
+    remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_set}_org ${dataprefix}/data/${train_set}
+    remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/${train_dev}
+
+    # compute global CMVN
+    compute-cmvn-stats scp:${dataprefix}/data/${train_set}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark
+
+    # dump features for training
+    if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_tr_dir}/storage ]; then
+    utils/create_split_dir.pl \
+        /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_set}/delta${do_delta}/storage \
+        ${feat_tr_dir}/storage
+    fi
+    if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_dt_dir}/storage ]; then
+    utils/create_split_dir.pl \
+        /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_dev}/delta${do_delta}/storage \
+        ${feat_dt_dir}/storage
+    fi
+    dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
+        ${dataprefix}/data/${train_set}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/train ${feat_tr_dir}
+    dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
+        ${dataprefix}/data/${train_dev}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/dev ${feat_dt_dir}
+    for rtask in ${recog_set}; do
+        feat_recog_dir=${dumpdir}/${rtask}/delta${do_delta}; mkdir -p ${feat_recog_dir}
+        dump.sh --cmd "$train_cmd" --nj ${nj} --do_delta ${do_delta} \
+            ${dataprefix}/data/${rtask}/feats.scp ${dataprefix}/data/${train_set}/cmvn.ark ${dataprefix}/exp/dump_feats/recog/${rtask} \
+            ${feat_recog_dir}
+    done
 fi
 
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
