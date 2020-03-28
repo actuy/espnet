@@ -1,5 +1,5 @@
 # for 4 gpus with 24G
-ccum-grad: 2
+accum-grad: 2
 adim: 512
 aheads: 8
 backend: pytorch
