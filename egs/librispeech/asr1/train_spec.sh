@@ -46,7 +46,7 @@ use_lm_valbest_average=false # if true, the validation `lm_n_average`-best langu
 # someone else has already put it.  You'll want to change this
 # if you're not on the CLSP grid.
 datadir=/blob/v-chzh/dataDir/data/libri
-dataprefix=/blob/v-chzh/dataDir/data/libri/espnet
+dataprefix=${datadir}/LibriSpeech/espnet
 
 # base url for downloads.
 data_url=www.openslr.org/resources/12
