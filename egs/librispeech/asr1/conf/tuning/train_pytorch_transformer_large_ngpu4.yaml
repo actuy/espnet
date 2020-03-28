@@ -1,8 +1,9 @@
-accum-grad: 4
+# for 4 gpus with 24G
+ccum-grad: 2
 adim: 512
 aheads: 8
 backend: pytorch
-batch-bins: 15000000
+batch-bins: 30000000
 dlayers: 6
 dropout-rate: 0.1
 dunits: 2048

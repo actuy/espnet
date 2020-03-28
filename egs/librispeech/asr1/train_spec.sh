@@ -87,6 +87,7 @@ mkdir -p ${expdir}
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
 feat_tr_dir=${dataprefix}/${dumpdir}/${train_set}/delta${do_delta}; mkdir -p ${feat_tr_dir}
 feat_dt_dir=${dataprefix}/${dumpdir}/${train_dev}/delta${do_delta}; mkdir -p ${feat_dt_dir}
+resume=${expdir}/results/snapshot.ep.2
 
 ${cuda_cmd} --gpu ${ngpu} ${expdir}/train.log \
         asr_train.py \
