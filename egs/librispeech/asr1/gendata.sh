@@ -49,6 +49,7 @@ use_lm_valbest_average=false # if true, the validation `lm_n_average`-best langu
 # if you're not on the CLSP grid.
 datadir=/blob/v-chzh/dataDir/data/libri
 dataprefix=${datadir}/LibriSpeech/espnet
+#dataprefix=.
 #dataprefix=${datadir}/espnet
 dumpdir=${dataprefix}/${dumpdir}
 #datadir=/export/a15/vpanayotov/data
@@ -93,17 +94,18 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature Generation"
     fbankdir=${dataprefix}/fbank
     # Generate the fbank features; by default 80-dimensional fbanks with pitch on each frame
-    for x in dev_clean test_clean dev_other test_other train_clean_100 train_clean_360 train_other_500; do
+    for x in train_other_500; do
+#    for x in dev_clean test_clean dev_other test_other train_clean_100 train_clean_360 train_other_500; do
         steps/make_fbank_pitch.sh --cmd "$train_cmd" --nj ${nj} --write_utt2num_frames true \
             ${dataprefix}/data/${x} ${dataprefix}/exp/make_fbank/${x} ${fbankdir}
         utils/fix_data_dir.sh ${dataprefix}/data/${x}
     done
 
-    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_set}_org ${dataprefix}/data/train_clean_100 ${dataprefix}/data/train_clean_360 ${dataprefix}/data/train_other_500
     utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/dev_clean ${dataprefix}/data/dev_other
+    utils/combine_data.sh --extra_files utt2num_frames ${dataprefix}/data/${train_set}_org ${dataprefix}/data/train_clean_100 ${dataprefix}/data/train_clean_360 ${dataprefix}/data/train_other_500
 
-    # remove utt having more than 3000 frames
-    # remove utt having more than 400 characters
+     remove utt having more than 3000 frames
+     remove utt having more than 400 characters
     remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_set}_org ${dataprefix}/data/${train_set}
     remove_longshortdata.sh --maxframes 3000 --maxchars 400 ${dataprefix}/data/${train_dev}_org ${dataprefix}/data/${train_dev}
 
@@ -112,11 +114,13 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
 
     # dump features for training
     if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_tr_dir}/storage ]; then
+    echo "Info: doing split of tr dir"
     utils/create_split_dir.pl \
         /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_set}/delta${do_delta}/storage \
         ${feat_tr_dir}/storage
     fi
     if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d ${feat_dt_dir}/storage ]; then
+    echo "Info: doing split of dt dir"
     utils/create_split_dir.pl \
         /export/b{14,15,16,17}/${USER}/espnet-data/egs/librispeech/asr1/dump/${train_dev}/delta${do_delta}/storage \
         ${feat_dt_dir}/storage
