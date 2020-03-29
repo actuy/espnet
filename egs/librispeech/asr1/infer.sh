@@ -10,7 +10,7 @@
 # general configuration
 backend=pytorch
 ngpu=4         # number of gpus ("0" uses cpu, otherwise use gpu)
-nj=32
+nj=16
 debugmode=1
 dumpdir=dump   # directory to dump full features
 N=0            # number of minibatches to be used (mainly for debugging). "0" uses all minibatches.
@@ -89,57 +89,63 @@ fi
 expdir=${dataprefix}/exp/${expname}
 mkdir -p ${expdir}
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
-feat_tr_dir=${dumpdir}/${train_set}/delta${do_delta}; mkdir -p ${feat_tr_dir}
-feat_dt_dir=${dumpdir}/${train_dev}/delta${do_delta}; mkdir -p ${feat_dt_dir}
-bpemodel=${dumpdir}/data/lang_char/${train_set}_${bpemode}${nbpe}
+bpemodel=data/lang_char/${train_set}_${bpemode}${nbpe}
 
-echo "stage 5: Decoding"
-    if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
-        # Average ASR models
-        if ${use_valbest_average}; then
-            recog_model=model.val${n_average}.avg.best
-            opt="--log ${expdir}/results/log"
-        else
-            recog_model=model.last${n_average}.avg.best
-            opt="--log"
-        fi
-        average_checkpoints.py \
-            ${opt} \
-            --backend ${backend} \
-            --snapshots ${expdir}/results/snapshot.ep.* \
-            --out ${expdir}/results/${recog_model} \
-            --num ${n_average}
+echo "Decoding"
+if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
+    # Average ASR models
+    if ${use_valbest_average}; then
+        recog_model=model.val${n_average}.avg.best
+        opt="--log ${expdir}/results/log"
+    else
+        recog_model=model.last${n_average}.avg.best
+        opt="--log"
+    fi
+    average_checkpoints.py \
+        ${opt} \
+        --backend ${backend} \
+        --snapshots ${expdir}/results/snapshot.ep.* \
+        --out ${expdir}/results/${recog_model} \
+        --num ${n_average}
+fi
+echo "[info] finish avg ckpt"
+
+feat_recog_dir=${dumpdir}/test_clean/delta${do_delta}
+splitjson.py --parts ${nj} ${feat_recog_dir}/data_${bpemode}${nbpe}.json
+echo "[info] finish split json"
+
+decode_dir=decode_test_clean_${recog_model}_$(basename ${decode_config%.*})_${lmtag}
+function run() {
+    part=$1
+    export CUDA_VISIBLE_DEVICES=$2
+    ${decode_cmd} ${expdir}/${decode_dir}/log/decode.${part}.log \
+        asr_recog.py \
+        --config ${decode_config} \
+        --ngpu 1 \
+        --backend ${backend} \
+        --batchsize 0 \
+        --recog-json ${feat_recog_dir}/split${nj}utt/data_${bpemode}${nbpe}.${part}.json \
+        --result-label ${expdir}/${decode_dir}/data.${part}.json \
+        --model ${expdir}/results/${recog_model}  \
+        --api v2
+}
+jobPerGPU=${nj}/${ngpu}
+echo "[info] job per gpu is ${jobPerGPU}"
+
+for ((i=0;i<${nj};i+=${ngpu}));
+do
+    for ((j=0;j<${ngpu};j++));
+    do
+        echo "run $(($i+$j)) ${j}"
+        run $(($i+$j)) ${j} &
+    done
+
+    if [[ $(( $[$i+1]%${jobPerGPU} )) -eq 0 ]]; then
+        wait
     fi
 
-    pids=() # initialize pids
-    for rtask in ${recog_set}; do
-    (
-        decode_dir=decode_${rtask}_${recog_model}_$(basename ${decode_config%.*})_${lmtag}
-        feat_recog_dir=${dumpdir}/${rtask}/delta${do_delta}
-
-        # split data
-        splitjson.py --parts ${nj} ${feat_recog_dir}/data_${bpemode}${nbpe}.json
-
-        #### use CPU for decoding
-        ngpu=0
-
-        # set batchsize 0 to disable batch decoding
-        ${decode_cmd} JOB=1:${nj} ${expdir}/${decode_dir}/log/decode.JOB.log \
-            asr_recog.py \
-            --config ${decode_config} \
-            --ngpu ${ngpu} \
-            --backend ${backend} \
-            --batchsize 0 \
-            --recog-json ${feat_recog_dir}/split${nj}utt/data_${bpemode}${nbpe}.JOB.json \
-            --result-label ${expdir}/${decode_dir}/data.JOB.json \
-            --model ${expdir}/results/${recog_model}  \
-            --api v2
-
-        score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
-
-    ) &
-    pids+=($!) # store background pids
-    done
-    i=0; for pid in "${pids[@]}"; do wait ${pid} || ((++i)); done
-    [ ${i} -gt 0 ] && echo "$0: ${i} background jobs are failed." && false
-    echo "Finished"
+    echo "[info] decode $[$i+ngpu]/${nj} done"
+    score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
+done
+echo "[info] decode all done"
+#mergejson.py --input-jsons ${decode_dir}/split${nj}utt/*.json --output-jsons $tmpdir/output/*.json
