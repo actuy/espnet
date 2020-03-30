@@ -20,8 +20,8 @@ resume=        # Resume the training from snapshot
 # feature configuration
 do_delta=false
 
-preprocess_config=
-#preprocess_config=conf/specaug.yaml
+#preprocess_config=
+preprocess_config=conf/specaug.yaml
 train_config=conf/train.yaml # current default recipe requires 4 gpus.
                              # if you do not have 4 gpus, please reconfigure the `batch-bins` and `accum-grad` parameters in config.
 lm_config=conf/lm.yaml
@@ -36,7 +36,7 @@ recog_model=model.acc.best  # set a model to be used for decoding: 'model.acc.be
 lang_model=rnnlm.model.best # set a language model to be used for decoding
 
 # model average realted (only for transformer)
-n_average=5                  # the number of ASR models to be averaged
+n_average=2                   # the number of ASR models to be averaged
 use_valbest_average=false     # if true, the validation `n_average`-best ASR models will be averaged.
 #use_valbest_average=true     # if true, the validation `n_average`-best ASR models will be averaged.
                              # if false, the last `n_average` ASR models will be averaged.
@@ -86,7 +86,7 @@ else
     expname=${train_set}_${backend}_${tag}
 fi
 
-expdir=${dataprefix}/exp/${expname}
+expdir=${dataprefix}/exp/${expname}_bak
 mkdir -p ${expdir}
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
 bpemodel=data/lang_char/${train_set}_${bpemode}${nbpe}
@@ -116,7 +116,7 @@ echo "[info] finish split json"
 
 decode_dir=decode_test_clean_${recog_model}_$(basename ${decode_config%.*})_${lmtag}
 function run() {
-    part=$1
+    part=$[$1+1]
     export CUDA_VISIBLE_DEVICES=$2
     ${decode_cmd} ${expdir}/${decode_dir}/log/decode.${part}.log \
         asr_recog.py \
