@@ -29,7 +29,7 @@ decode_config=conf/decode.yaml
 
 # rnnlm related
 lm_resume= # specify a snapshot file to resume LM training
-lmtag=no_lm     # tag for managing LMs
+lmtag=lm     # tag for managing LMs
 
 # decoding parameter
 recog_model=model.acc.best  # set a model to be used for decoding: 'model.acc.best' or 'model.loss.best'
@@ -90,6 +90,7 @@ expdir=${dataprefix}/exp/${expname}
 mkdir -p ${expdir}
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
 bpemodel=data/lang_char/${train_set}_${bpemode}${nbpe}
+lmexpdir=${dataprefix}/pretrain/exp/train_rnnlm_pytorch_lm_transformer_cosine_batchsize32_lr1e-4_layer16_unigram5000_ngpu4
 
 echo "Decoding"
 if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
@@ -101,12 +102,12 @@ if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
         recog_model=model.last${n_average}.avg.best
         opt="--log"
     fi
-#    average_checkpoints.py \
-#        ${opt} \
-#        --backend ${backend} \
-#        --snapshots ${expdir}/results/snapshot.ep.* \
-#        --out ${expdir}/results/${recog_model} \
-#        --num ${n_average}
+    average_checkpoints.py \
+        ${opt} \
+        --backend ${backend} \
+        --snapshots ${expdir}/results/snapshot.ep.* \
+        --out ${expdir}/results/${recog_model} \
+        --num ${n_average}
 fi
 echo "[info] finish avg ckpt"
 
@@ -127,6 +128,7 @@ function run() {
         --recog-json ${feat_recog_dir}/split${nj}utt/data_${bpemode}${nbpe}.${part}.json \
         --result-label ${expdir}/${decode_dir}/data.${part}.json \
         --model ${expdir}/results/${recog_model}  \
+        --rnnlm ${lmexpdir}/${lang_model} \
         --api v2
 }
 jobPerGPU=$[${nj}/${ngpu}]

@@ -14,7 +14,7 @@ nj=32
 debugmode=1
 dumpdir=dump   # directory to dump full features
 N=0            # number of minibatches to be used (mainly for debugging). "0" uses all minibatches.
-verbose=0      # verbose option
+verbose=0      # verbose option, >0 means log info, else log warn
 resume=        # Resume the training from snapshot
 
 # feature configuration

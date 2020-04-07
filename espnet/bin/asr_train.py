@@ -284,6 +284,9 @@ def main(cmd_args):
         model_module = "espnet.nets." + args.backend + "_backend.e2e_asr:E2E"
     else:
         model_module = args.model_module
+    print("model module is", model_module)
+    print("arg key", args.keys())
+    input()
     model_class = dynamic_import(model_module)
     model_class.add_arguments(parser)
 
@@ -351,6 +354,8 @@ def main(cmd_args):
     # train
     logging.info('backend = ' + args.backend)
 
+    print("num_spkrs", args.num_spkrs)
+    input()
     if args.num_spkrs == 1:
         if args.backend == "chainer":
             from espnet.asr.chainer_backend.asr import train
