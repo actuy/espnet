@@ -133,7 +133,8 @@ jobPerGPU=$[${nj}/${ngpu}]
 echo "[info] job per gpu is ${jobPerGPU}"
 jobPerGPU=${nj}/${ngpu}
 
-for ((i=0;i<${nj};i+=${ngpu}));
+#for ((i=0;i<${nj};i+=${ngpu}));
+for ((i=4;i<${nj};i+=${ngpu}));
 do
     for ((j=0;j<${ngpu};j++));
     do

@@ -102,12 +102,12 @@ if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
         recog_model=model.last${n_average}.avg.best
         opt="--log"
     fi
-    average_checkpoints.py \
-        ${opt} \
-        --backend ${backend} \
-        --snapshots ${expdir}/results/snapshot.ep.* \
-        --out ${expdir}/results/${recog_model} \
-        --num ${n_average}
+#    average_checkpoints.py \
+#        ${opt} \
+#        --backend ${backend} \
+#        --snapshots ${expdir}/results/snapshot.ep.* \
+#        --out ${expdir}/results/${recog_model} \
+#        --num ${n_average}
 fi
 echo "[info] finish avg ckpt"
 
@@ -135,7 +135,8 @@ jobPerGPU=$[${nj}/${ngpu}]
 echo "[info] job per gpu is ${jobPerGPU}"
 jobPerGPU=${nj}/${ngpu}
 
-for ((i=0;i<${nj};i+=${ngpu}));
+#for ((i=0;i<${nj};i+=${ngpu}));
+for ((i=4;i<${nj};i+=${ngpu}));
 do
     for ((j=0;j<${ngpu};j++));
     do
