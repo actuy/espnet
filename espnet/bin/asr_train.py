@@ -286,7 +286,7 @@ def main(cmd_args):
         model_module = args.model_module
     print("model module is", model_module)
     print("arg key", args.keys())
-    input()
+    # input()
     model_class = dynamic_import(model_module)
     model_class.add_arguments(parser)
 
@@ -355,7 +355,7 @@ def main(cmd_args):
     logging.info('backend = ' + args.backend)
 
     print("num_spkrs", args.num_spkrs)
-    input()
+    # input()
     if args.num_spkrs == 1:
         if args.backend == "chainer":
             from espnet.asr.chainer_backend.asr import train
