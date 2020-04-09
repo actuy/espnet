@@ -86,8 +86,8 @@ else
     expname=${train_set}_${backend}_${tag}
 fi
 
-#expdir=${dataprefix}/exp/${expname}
-expdir=/blob/v-chzh/dataDir/data/libri/espnet/pretrain/librispeech.transformer.v1/exp/train_960_pytorch_train_pytorch_transformer.v1_aheads8_batch-bins15000000_specaug
+expdir=${dataprefix}/exp/${expname}
+#expdir=/blob/v-chzh/dataDir/data/libri/espnet/pretrain/librispeech.transformer.v1/exp/train_960_pytorch_train_pytorch_transformer.v1_aheads8_batch-bins15000000_specaug
 mkdir -p ${expdir}
 dict=${dataprefix}/data/lang_char/${train_set}_${bpemode}${nbpe}_units.txt
 bpemodel=data/lang_char/${train_set}_${bpemode}${nbpe}
@@ -102,12 +102,12 @@ if [[ $(get_yaml.py ${train_config} model-module) = *transformer* ]]; then
         recog_model=model.last${n_average}.avg.best
         opt="--log"
     fi
-#    average_checkpoints.py \
-#        ${opt} \
-#        --backend ${backend} \
-#        --snapshots ${expdir}/results/snapshot.ep.* \
-#        --out ${expdir}/results/${recog_model} \
-#        --num ${n_average}
+    average_checkpoints.py \
+        ${opt} \
+        --backend ${backend} \
+        --snapshots ${expdir}/results/snapshot.ep.* \
+        --out ${expdir}/results/${recog_model} \
+        --num ${n_average}
 fi
 echo "[info] finish avg ckpt"
 
@@ -134,20 +134,20 @@ jobPerGPU=$[${nj}/${ngpu}]
 echo "[info] job per gpu is ${jobPerGPU}"
 jobPerGPU=${nj}/${ngpu}
 
-#for ((i=0;i<${nj};i+=${ngpu}));
-#do
-#    for ((j=0;j<${ngpu};j++));
-#    do
-#        echo "run $(($i+$j)) ${j}"
-#        run $(($i+$j)) ${j} &
-#    done
-#
-#    if [[ $(( $[$i+1]%${jobPerGPU} )) -eq 0 ]]; then
-#        wait
-#    fi
-#    echo "[info] decode $[$i+ngpu]/${nj} done"
-#    score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
-#done
-score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
+for ((i=0;i<${nj};i+=${ngpu}));
+do
+    for ((j=0;j<${ngpu};j++));
+    do
+        echo "run $(($i+$j)) ${j}"
+        run $(($i+$j)) ${j} &
+    done
+
+    if [[ $(( $[$i+1]%${jobPerGPU} )) -eq 0 ]]; then
+        wait
+    fi
+    echo "[info] decode $[$i+ngpu]/${nj} done"
+    score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
+done
+#score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
 echo "[info] decode all done"
 
