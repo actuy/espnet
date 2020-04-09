@@ -37,8 +37,8 @@ lang_model=rnnlm.model.best # set a language model to be used for decoding
 
 # model average realted (only for transformer)
 n_average=5                   # the number of ASR models to be averaged
-use_valbest_average=false     # if true, the validation `n_average`-best ASR models will be averaged.
-#use_valbest_average=true     # if true, the validation `n_average`-best ASR models will be averaged.
+#use_valbest_average=false     # if true, the validation `n_average`-best ASR models will be averaged.
+use_valbest_average=true     # if true, the validation `n_average`-best ASR models will be averaged.
                              # if false, the last `n_average` ASR models will be averaged.
 lm_n_average=0               # the number of languge models to be averaged
 use_lm_valbest_average=false # if true, the validation `lm_n_average`-best language models will be averaged.
@@ -135,20 +135,20 @@ jobPerGPU=$[${nj}/${ngpu}]
 echo "[info] job per gpu is ${jobPerGPU}"
 jobPerGPU=${nj}/${ngpu}
 
-#for ((i=0;i<${nj};i+=${ngpu}));
-#do
-#    for ((j=0;j<${ngpu};j++));
-#    do
-#        echo "run $(($i+$j)) ${j}"
-#        run $(($i+$j)) ${j} &
-#    done
-#
-#    if [[ $(( $[$i+1]%${jobPerGPU} )) -eq 0 ]]; then
-#        wait
-#    fi
-#    echo "[info] decode $[$i+ngpu]/${nj} done"
-#    score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
-#done
-score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
+for ((i=0;i<${nj};i+=${ngpu}));
+do
+    for ((j=0;j<${ngpu};j++));
+    do
+        echo "run $(($i+$j)) ${j}"
+        run $(($i+$j)) ${j} &
+    done
+
+    if [[ $(( $[$i+1]%${jobPerGPU} )) -eq 0 ]]; then
+        wait
+    fi
+    echo "[info] decode $[$i+ngpu]/${nj} done"
+    score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
+done
+#score_sclite.sh --bpe ${nbpe} --bpemodel ${bpemodel}.model --wer true ${expdir}/${decode_dir} ${dict}
 echo "[info] decode all done"
 
